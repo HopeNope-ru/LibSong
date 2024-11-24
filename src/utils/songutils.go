@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/lyric/songs/hw/src/handlers/dto"
 	"github.com/lyric/songs/hw/src/repository/model"
 )
 
@@ -36,7 +35,7 @@ func UnmarshalSong(r *http.Request) (*model.SongDetail, error) {
 	return &song, nil
 }
 
-func GenerateUpdateQuery(table string, song dto.ReqSong) string {
+func GenerateUpdateQuery(table string, song any) string {
 	b := new(bytes.Buffer)
 	b.Grow(255)
 	b.WriteString("UPDATE ")
