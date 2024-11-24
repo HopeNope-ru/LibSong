@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lyric/songs/hw/src/handlers/dto"
 	"github.com/lyric/songs/hw/src/repository"
 	"github.com/lyric/songs/hw/src/repository/model"
 )
@@ -49,7 +50,7 @@ func main() {
 	}
 	fmt.Printf("rows affected %v\n", ra)
 
-	// song := dto.ReqSong{Group: "sdfg", Link: "sdfasdgfg"}
+	song := dto.ReqSong{Group: "sdfg", Link: "sdfasdgfg"}
 	// rsong := reflect.ValueOf(song)
 	// for i := 0; i < rsong.NumField(); i++ {
 	// 	fmt.Printf("Field: %d \t type: %T \t value: %v\n", i, rsong.Field(i), rsong.Field(i))
@@ -65,6 +66,6 @@ func main() {
 	// 	fmt.Printf("value of tag = %s and val of lookup = %s\n", vl, valu)
 	// }
 
-	// s.ChangeSong("123", "123", song)
+	s.ChangeSong("123", "123", song)
 	// fmt.Println(resp)
 }

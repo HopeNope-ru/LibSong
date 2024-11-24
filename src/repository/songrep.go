@@ -57,10 +57,12 @@ func (s *SongRepository) ChangeSong(group, song string, req dto.ReqSong) (int64,
 	q, args := utils.GenerateUpdateQuery(s.table, req)
 
 	l := len(args)
-	// Большой костыль, от котого надо избавляться
-	q = fmt.Sprintf("%s WHERE \"group\" = $%v and song $%v", q, l+1, l+2)
+	// Большой костыль, от которого надо избавляться
+	q = fmt.Sprintf("%s WHERE \"group\" = $%v and song = $%v", q, l+1, l+2)
+	args = append(args, group)
+	args = append(args, song)
 
-	excd, err := s.db.Exec(s.ctx, q, args, group, song)
+	excd, err := s.db.Exec(s.ctx, q, args...)
 	if err != nil {
 		return 0, err
 	}
