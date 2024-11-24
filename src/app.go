@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -9,10 +10,6 @@ import (
 	"github.com/lyric/songs/hw/src/handlers"
 	"github.com/lyric/songs/hw/src/repository"
 )
-
-func stub(w http.ResponseWriter, r *http.Request) {
-
-}
 
 func GetApp(args ...string) {
 	dsn := "postgres://golang:1234@localhost:5432/song"
@@ -36,11 +33,8 @@ func GetApp(args ...string) {
 	r.HandleFunc("/library/songs", songhandlers.Lib).
 		Methods(http.MethodGet)
 	r.HandleFunc("/delete", songhandlers.Delete).
-		Methods(http.MethodDelete).
-		Queries(
-			"group", "{group}",
-			"song", "{song}",
-		)
+		Methods(http.MethodDelete)
 
-	http.ListenAndServe(":8080", r)
+	log.Println("Listen and serve port 8080")
+	log.Fatalln(http.ListenAndServe(":8080", r))
 }

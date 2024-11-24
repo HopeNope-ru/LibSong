@@ -64,11 +64,13 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 	limit, err := strconv.Atoi(soffset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	offset, err := strconv.Atoi(slimit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	filter, ok := v["filter"]
@@ -89,6 +91,7 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 	default:
 		ser := `{"error": "order is not compatible"}`
 		http.Error(w, ser, http.StatusBadRequest)
+		return
 	}
 
 	// Заглядываем в будущее запроса, чтобы понять есть ли у нас еще строки в БД
@@ -97,6 +100,7 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusBadRequest)
+		return
 	}
 
 	resp := dto.RespPaginationLib{Next: false}
@@ -112,6 +116,7 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
+		return
 	}
 
 	w.Write(b)
@@ -122,25 +127,30 @@ func (sh *SongHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if m != http.MethodPost {
 		ser := `{"error": "request must be POST"}`
 		http.Error(w, ser, http.StatusBadRequest)
+		return
 	}
 
 	req, err := utils.UnmarshalSong(r)
 	if err != nil {
 		ser := `{"error": "request must be POST"}`
 		http.Error(w, ser, http.StatusBadRequest)
+		return
 	}
 
 	if len(req.Group) == 0 {
 		http.Error(w, "need group", http.StatusBadRequest)
+		return
 	}
 
 	if len(req.Song) == 0 {
 		http.Error(w, "need song", http.StatusBadRequest)
+		return
 	}
 
 	if err = sh.storage.CreateSong(req.Group, req.Song); err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -150,30 +160,36 @@ func (sh *SongHandler) Change(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		ser := `{"error": "request must be PUT"}`
 		http.Error(w, ser, http.StatusBadRequest)
+		return
 	}
 
 	req, err := utils.UnmarshalSong(r)
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
+		return
 	}
 
 	if len(req.Group) == 0 {
 		http.Error(w, "need group", http.StatusBadRequest)
+		return
 	}
 
 	if len(req.Song) == 0 {
 		http.Error(w, "need song", http.StatusBadRequest)
+		return
 	}
 
 	rowAffected, err := sh.storage.ChangeSong(req.Group, req.Song, req)
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
+		return
 	}
 
 	if rowAffected == 0 {
 		w.WriteHeader(http.StatusNotModified)
+		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -181,14 +197,14 @@ func (sh *SongHandler) Change(w http.ResponseWriter, r *http.Request) {
 
 func (sh *SongHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
-		ser := `{"error": "request must be DELETE"}`
-		http.Error(w, ser, http.StatusBadRequest)
+		http.Error(w, "request must be DELETE", http.StatusBadRequest)
+		return
 	}
 
 	req, err := utils.UnmarshalSong(r)
 	if err != nil {
-		ser := fmt.Sprintf(`{"error": "%s"}`, err)
-		http.Error(w, ser, http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	ValidReq(w, req)
@@ -197,10 +213,12 @@ func (sh *SongHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
+		return
 	}
 
 	if rowAffected == 0 {
 		w.WriteHeader(http.StatusNotModified)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
