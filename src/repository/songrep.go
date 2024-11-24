@@ -79,3 +79,25 @@ func (s *SongRepository) CreateSong(group, song string) error {
 
 	return nil
 }
+
+func (s *SongRepository) SelectPaginationLibSong(offset, limit int, filter, order_by string) ([] , error) {
+	q := fmt.Sprintf("select song, \"group\" from library.song limit $2 offset $1 order by %s %s", filter, order_by)
+	future := 2
+	row, err := dbpool.Query(ctx, q, offset, limit + future)
+	if err != nil {
+		panic(err)
+	}
+
+	m := make([]model.SongDetail, 0, limit)
+
+	var 
+	for row.Next() {
+		var s model.SongDetail
+		err := row.Scan(&s.Song, &s.Group)
+		if err != nil {
+			panic(err)
+		}
+
+		m = append(m, s)
+	}
+}

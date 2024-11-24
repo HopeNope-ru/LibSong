@@ -20,13 +20,13 @@ func main() {
 		panic(err)
 	}
 
-	sqlQuery := "select song, \"group\" from library.song limit $2 offset $1"
-	row, err := dbpool.Query(ctx, sqlQuery, 2, 2)
+	sqlQuery := "select song_id, \"group\" from library.song order by song_id desc"
+	row, err := dbpool.Query(ctx, sqlQuery)
 	if err != nil {
 		panic(err)
 	}
 
-	m := make([]model.SongDetail, 0, 2)
+	// m := make([]model.SongDetail, 0, 2)
 	for row.Next() {
 		var s model.SongDetail
 		err := row.Scan(&s.Song, &s.Group)
@@ -34,8 +34,10 @@ func main() {
 			panic(err)
 		}
 
-		m = append(m, s)
+		fmt.Println("1. ", s)
+		// m = append(m, s)
 	}
+	// fmt.Println(m)
 
 	s := repository.NewSongRepository(context.Background(), dbpool)
 	res, err := s.SelectSong("Wham!", "Last Christmas")
