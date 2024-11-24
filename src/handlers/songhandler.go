@@ -22,6 +22,8 @@ func NewSongHandler(storage *repository.SongRepository) *SongHandler {
 }
 
 func (sh *SongHandler) Info(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
 	v := r.URL.Query()
 
 	group := v.Get("group")
@@ -53,6 +55,7 @@ func (sh *SongHandler) Info(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 
 	values := r.URL.Query()
 
@@ -128,6 +131,8 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sh *SongHandler) Create(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
 	m := r.Method
 	if m != http.MethodPost {
 		ser := `{"error": "request must be POST"}`
@@ -157,6 +162,8 @@ func (sh *SongHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sh *SongHandler) Change(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
 	if r.Method != http.MethodPut {
 		ser := `{"error": "request must be PUT"}`
 		http.Error(w, ser, http.StatusBadRequest)
@@ -191,6 +198,8 @@ func (sh *SongHandler) Change(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sh *SongHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
 	if r.Method != http.MethodDelete {
 		http.Error(w, "request must be DELETE", http.StatusBadRequest)
 		return
