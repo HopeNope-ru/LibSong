@@ -8,18 +8,17 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lyric/songs/hw/src/handlers/dto"
 	"github.com/lyric/songs/hw/src/repository"
 	"github.com/lyric/songs/hw/src/utils"
 )
 
-type RepSong interface {
+type SongHandler struct {
+	storage *repository.SongRepository
 }
 
-type SongHandler struct {
-	db      *pgxpool.Pool
-	storage *repository.SongRepository
+func NewSongHandler(storage *repository.SongRepository) *SongHandler {
+	return &SongHandler{storage: storage}
 }
 
 func (sh *SongHandler) Info(w http.ResponseWriter, r *http.Request) {
@@ -35,6 +34,10 @@ func (sh *SongHandler) Info(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s, err := sh.storage.SelectSong(group, song)
+	if err != nil {
+		ser := fmt.Sprintf(`{"error": "%s"}`, err)
+		http.Error(w, ser, http.StatusInternalServerError)
+	}
 	// Реализовать логирование ошибки
 
 	b, err := json.Marshal(&s)
