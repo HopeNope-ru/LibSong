@@ -118,7 +118,11 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 		resp.Next = true
 	}
 
-	resp.Songs = songs[:limit]
+	if part < 0 {
+		resp.Songs = songs
+	} else {
+		resp.Songs = songs[:limit]
+	}
 
 	b, err := json.Marshal(&resp)
 	if err != nil {
