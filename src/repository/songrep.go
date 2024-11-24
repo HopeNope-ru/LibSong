@@ -70,6 +70,12 @@ func (s *SongRepository) ChangeSong(group, song string, req dto.ReqSong) (int64,
 	return excd.RowsAffected(), nil
 }
 
-// func (s *SongRepository) execUpdate(query string, song dto.ReqSong) {
+func (s *SongRepository) CreateSong(group, song string) error {
+	q := fmt.Sprintf(`insert into %s ("group", song) values ($1, $2)`, s.table)
+	_, err := s.db.Exec(s.ctx, q, group, song)
+	if err != nil {
+		return err
+	}
 
-// }
+	return nil
+}
