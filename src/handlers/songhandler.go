@@ -69,13 +69,13 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 		slimit = "5"
 	}
 
-	limit, err := strconv.Atoi(soffset)
+	offset, err := strconv.Atoi(soffset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	offset, err := strconv.Atoi(slimit)
+	limit, err := strconv.Atoi(slimit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -118,7 +118,7 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 		resp.Next = true
 	}
 
-	resp.Songs = songs
+	resp.Songs = songs[:limit]
 
 	b, err := json.Marshal(&resp)
 	if err != nil {
