@@ -104,11 +104,19 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 
 	// Заглядываем в будущее запроса, чтобы понять есть ли у нас еще строки в БД
 	future := 5
-	songs, err := sh.storage.SelectFuturePaginationLibSong(offset, limit, future, filter, order)
+	modelsongs, err := sh.storage.SelectFuturePaginationLibSong(offset, limit, future, filter, order)
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusBadRequest)
 		return
+	}
+
+	// Перемещаем из модели бд в ответ
+	songs := make([]dto.Song, 0, len(modelsongs))
+	for _, sng := range modelsongs {
+		var ss dto.Song
+		utils.ModelSong2SongToVerseList(&sng, &ss)
+		songs = append(songs, ss)
 	}
 
 	resp := dto.RespPaginationLib{Next: false}
@@ -118,11 +126,7 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 		resp.Next = true
 	}
 
-	if part < 0 {
-		resp.Songs = songs
-	} else {
-		resp.Songs = songs[:limit]
-	}
+	resp.Songs = songs[:limit]
 
 	b, err := json.Marshal(&resp)
 	if err != nil {

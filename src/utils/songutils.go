@@ -21,9 +21,19 @@ func ToVerseList(text string) []string {
 func ModelSong2Song(mdl *model.SongModel, song *dto.Song) {
 	song.Group = mdl.Group
 	song.Song = mdl.Song
-	song.ReleaseDate = mdl.ReleaseData.Time
 	song.Text = mdl.Link.String
 	song.Link = mdl.Link.String
+}
+
+func ModelSong2SongToVerseList(mdl *model.SongModel, song *dto.Song) {
+	ModelSong2Song(mdl, song)
+	verses := ToVerseList(mdl.Lyric.String)
+	if verses == nil {
+		song.Text = ""
+		return
+	}
+
+	song.Text = verses[0]
 }
 
 func UnmarshalSong(r *http.Request) (*dto.Song, error) {

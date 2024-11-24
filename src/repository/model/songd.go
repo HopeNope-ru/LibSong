@@ -20,12 +20,12 @@ func (d *Date) Scan(value interface{}) error {
 		return nil
 	}
 
-	source, ok := value.(*time.Time)
+	source, ok := value.(time.Time)
 	if !ok {
 		return errors.New("incompatible type")
 	}
 
-	dd, err := d.timeToDate(source)
+	dd, err := d.timeToDate(&source)
 	if err != nil {
 		return err
 	}

@@ -20,9 +20,9 @@ func NewSongRepository(ctx context.Context, db *pgxpool.Pool) *SongRepository {
 	return &SongRepository{db: db, ctx: ctx, table: "library.song"}
 }
 
-func (s *SongRepository) SelectSong(group, song string) (*model.SongDetail, error) {
+func (s *SongRepository) SelectSong(group, song string) (*model.SongModel, error) {
 
-	var sng model.SongDetail
+	var sng model.SongModel
 	q := fmt.Sprintf(`
 		select release_date, lyrics, link 
 		from %s 
@@ -32,7 +32,7 @@ func (s *SongRepository) SelectSong(group, song string) (*model.SongDetail, erro
 	)
 
 	err := s.db.QueryRow(s.ctx, q, group, song).
-		Scan(&sng.ReleaseData, &sng.Lyric, &sng.Link)
+		Scan(&sng.ReleaseDate, &sng.Lyric, &sng.Link)
 
 	if err != nil {
 		return nil, err
