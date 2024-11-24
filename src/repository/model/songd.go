@@ -3,27 +3,43 @@ package model
 import (
 	"bytes"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"strconv"
 	"time"
 )
 
-type Date string
+type Date struct {
+	Valid bool
+	Time  string
+}
 
 func (d *Date) Scan(value interface{}) error {
-	source, ok := value.(time.Time)
+	if value == nil {
+		d.Valid, d.Time = false, ""
+		return nil
+	}
+
+	source, ok := value.(*time.Time)
 	if !ok {
 		return errors.New("incompatible type")
 	}
 
-	dd, err := d.timeToDate(&source)
+	dd, err := d.timeToDate(source)
 	if err != nil {
 		return err
 	}
 
-	*d = Date(dd)
+	d.Time = dd
 
 	return nil
+}
+
+func (d Date) Value() (driver.Value, error) {
+	if !d.Valid {
+		return nil, nil
+	}
+	return d.Time, nil
 }
 
 func (d *Date) timeToDate(t *time.Time) (string, error) {
@@ -70,8 +86,10 @@ func (d *Date) timeToDate(t *time.Time) (string, error) {
 
 // }
 
-type SongDetail struct {
-	ReleaseData Date           `json:"releaseDate,omitempty"`
-	Lyric       sql.NullString `json:"text,omitempty"`
-	Link        sql.NullString `json:"link,omitempty"`
+type SongModel struct {
+	Group       string
+	Song        string
+	ReleaseData Date
+	Lyric       sql.NullString
+	Link        sql.NullString
 }

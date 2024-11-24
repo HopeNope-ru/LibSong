@@ -48,8 +48,7 @@ func (s *SongRepository) DeleteSong(group, song string) (int64, error) {
 		return 0, err
 	}
 
-	ra := ct.RowsAffected()
-	return ra, nil
+	return ct.RowsAffected(), nil
 }
 
 func (s *SongRepository) ChangeSong(group, song string, req *dto.Song) (int64, error) {
@@ -81,7 +80,7 @@ func (s *SongRepository) CreateSong(group, song string) error {
 }
 
 func (s *SongRepository) SelectFuturePaginationLibSong(offset, limit, future int, filter, order_by string) ([]dto.Song, error) {
-	q := fmt.Sprintf("select song, \"group\" from library.song order by %s %s limit $2 offset $1", filter, order_by)
+	q := fmt.Sprintf("select song, \"group\", release_date, lyrics, link from library.song order by %s %s limit $2 offset $1", filter, order_by)
 	row, err := s.db.Query(s.ctx, q, offset, limit+future)
 	if err != nil {
 		panic(err)
@@ -90,7 +89,7 @@ func (s *SongRepository) SelectFuturePaginationLibSong(offset, limit, future int
 	songs := make([]dto.Song, 0, limit)
 	for row.Next() {
 		var s dto.Song
-		err := row.Scan(&s.Song, &s.Group)
+		err := row.Scan(&s.Song, &s.Group, &s.ReleaseDate, &s.lyric)
 		if err != nil {
 			panic(err)
 		}

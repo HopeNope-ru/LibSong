@@ -11,10 +11,15 @@ import (
 	"strings"
 
 	"github.com/lyric/songs/hw/src/handlers/dto"
+	"github.com/lyric/songs/hw/src/repository/model"
 )
 
 func ToVerseList(text string) []string {
 	return strings.Split(text, "\\n\\n")
+}
+
+func ModelSong2Song(mdl *model.SongModel, song *dto.Song) {
+	song.Group = mdl.Group
 }
 
 func UnmarshalSong(r *http.Request) (*dto.Song, error) {
