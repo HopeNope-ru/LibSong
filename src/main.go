@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lyric/songs/hw/src/handlers/dto"
 	"github.com/lyric/songs/hw/src/repository"
 	"github.com/lyric/songs/hw/src/repository/model"
+	"github.com/lyric/songs/hw/src/utils"
 )
 
 func main() {
@@ -48,4 +50,23 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("rows affected %v\n", ra)
+
+	song := dto.ReqSong{Group: "sdfg", Link: "sdfasdgfg"}
+	// rsong := reflect.ValueOf(song)
+	// for i := 0; i < rsong.NumField(); i++ {
+	// 	fmt.Printf("Field: %d \t type: %T \t value: %v\n", i, rsong.Field(i), rsong.Field(i))
+	// 	if rsong.Field(i).IsZero() {
+	// 		fmt.Println("Field is nil")
+	// 	}
+	// 	field := rsong.Type()
+	// 	vl := field.Field(i).Tag.Get("mdb")
+	// 	valu, ok := field.Field(i).Tag.Lookup("mdb")
+	// 	if !ok {
+	// 		fmt.Println("NOT OK")
+	// 	}
+	// 	fmt.Printf("value of tag = %s and val of lookup = %s\n", vl, valu)
+	// }
+
+	resp := utils.GenerateUpdateQuery("library.song", song)
+	fmt.Println(resp)
 }

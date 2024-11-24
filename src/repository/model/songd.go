@@ -78,3 +78,11 @@ type SongDetail struct {
 	Link        sql.NullString `json:"link,omitempty"`
 	Format      sql.NullString `json:"format,omitempty"`
 }
+
+type SongModel struct {
+	Song        string         `mdb:"song"`
+	Group       string         `mdb:"group"`
+	ReleaseData Date           `mdb:"releaseDate,omitempty"`
+	Lyric       sql.NullString `mdb:"text,omitempty"`
+	Link        sql.NullString `mdb:"link,omitempty"`
+}
