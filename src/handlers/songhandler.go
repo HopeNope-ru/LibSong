@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lyric/songs/hw/src/repository/model"
+	"github.com/lyric/songs/hw/src/utils"
 )
 
 type RepSong interface {
@@ -81,18 +82,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, ser, http.StatusBadRequest)
 	}
 
-	defer r.Body.Close()
-
-	b, err := io.ReadAll(r.Body)
+	req, err := utils.UnmarshalSong(r)
 	if err != nil {
-		ser := fmt.Sprintf(`{"error": "%s"}`, err)
-		http.Error(w, ser, http.StatusInternalServerError)
-	}
-
-	var req model.SongDetail
-	if err = json.Unmarshal(b, &resp); err != nil {
-		ser := fmt.Sprintf(`{"error": "%s"}`, err)
-		http.Error(w, ser, http.StatusInternalServerError)
+		ser := `{"error": "request must be POST"}`
+		http.Error(w, ser, http.StatusBadRequest)
 	}
 
 	if err = storage.CreateSong(req); err != nil {
@@ -109,6 +102,7 @@ func Change(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, ser, http.StatusBadRequest)
 	}
 
+	// !!!!!!!! Сюда добавить util.UnmarshalSong()
 	defer r.Body.Close()
 
 	b, err := io.ReadAll(r.Body)
@@ -122,6 +116,7 @@ func Change(w http.ResponseWriter, r *http.Request) {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 	}
+	// !!!!!!!!!!!!!!!!!!!!!
 
 	if err := storage.ChangeSong(); err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
@@ -136,7 +131,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		ser := `{"error": "request must be DELETE"}`
 		http.Error(w, ser, http.StatusBadRequest)
 	}
-
+	// !!!!!!!! Сюда добавить util.UnmarshalSong()
 	defer r.Body.Close()
 
 	b, err := io.ReadAll(r.Body)
@@ -150,6 +145,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 	}
+	// !!!!!!!!!!!!!!!!!!!!!
 
 	if err = storage.DeleteSong(); err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
