@@ -52,17 +52,20 @@ func (s *SongRepository) DeleteSong(group, song string) (int64, error) {
 	return ra, nil
 }
 
-func (s *SongRepository) ChangeSong(song dto.ReqSong) (int64, error) {
+func (s *SongRepository) ChangeSong(group, song string, req dto.ReqSong) (int64, error) {
 
-	q, args := utils.GenerateUpdateQuery(s.table, song)
+	q, args := utils.GenerateUpdateQuery(s.table, req)
 
-	excd, err := s.db.Exec(s.ctx, q, args)
+	l := len(args)
+	// Большой костыль, от котого надо избавляться
+	q = fmt.Sprintf("%s WHERE \"group\" = $%v and song $%v", q, l+1, l+2)
+
+	excd, err := s.db.Exec(s.ctx, q, args, group, song)
 	if err != nil {
 		return 0, err
 	}
-	excd.RowsAffected()
 
-	return nil
+	return excd.RowsAffected(), nil
 }
 
 // func (s *SongRepository) execUpdate(query string, song dto.ReqSong) {

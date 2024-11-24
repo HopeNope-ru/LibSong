@@ -44,7 +44,8 @@ func GenerateUpdateQuery(table string, object any) (string, []any) {
 
 	rs := reflect.ValueOf(object)
 	ts := reflect.TypeOf(object)
-
+	k := rs.Kind()
+	fmt.Println(k)
 	// Создаем и получаем массив с названием полей структуры
 	num := rs.NumField()
 	keyarr := make([]string, 0, num)
@@ -68,9 +69,18 @@ func GenerateUpdateQuery(table string, object any) (string, []any) {
 			first = false
 		}
 
-		b.WriteString(val)
-		b.WriteString(" = ")
-		b.WriteString(fmt.Sprintf("$%v ", i+1))
+		switch lval := strings.ToLower(val); lval {
+		case "group":
+			b.WriteRune('"')
+			b.WriteString(lval)
+			b.WriteRune('"')
+			b.WriteString(" = ")
+			b.WriteString(fmt.Sprintf("$%v ", i+1))
+		default:
+			b.WriteString(lval)
+			b.WriteString(" = ")
+			b.WriteString(fmt.Sprintf("$%v ", i+1))
+		}
 	}
 
 	// Создаем условие WHERE
