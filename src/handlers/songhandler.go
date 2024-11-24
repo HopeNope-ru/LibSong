@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lyric/songs/hw/src/handlers/dto"
+	"github.com/lyric/songs/hw/src/repository"
 	"github.com/lyric/songs/hw/src/repository/model"
 	"github.com/lyric/songs/hw/src/utils"
 )
@@ -16,7 +20,8 @@ type RepSong interface {
 }
 
 type SongHandler struct {
-	db *pgxpool.Pool
+	db      *pgxpool.Pool
+	storage *repository.SongRepository
 }
 
 func Info(w http.ResponseWriter, r *http.Request) {
@@ -42,12 +47,27 @@ func Info(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func Lib(w http.ResponseWriter, r *http.Request) {
+func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 
-	offset, ok := v["offset"]
+	soffset, ok := v["offset"]
 	if !ok {
-		offset = "0"
+		soffset = "0"
+	}
+
+	slimit, ok := v["limit"]
+	if !ok {
+		slimit = "5"
+	}
+
+	limit, err := strconv.Atoi(soffset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	offset, err := strconv.Atoi(slimit)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	filter, ok := v["filter"]
@@ -60,13 +80,34 @@ func Lib(w http.ResponseWriter, r *http.Request) {
 		order = "asc"
 	}
 
-	s, err := storage.GetLibSongs(offset, filter, order)
+	switch lo := strings.ToLower(order); lo {
+	case "asc":
+		order = lo
+	case "desc":
+		order = lo
+	default:
+		ser := `{"error": "order is not compatible"}`
+		http.Error(w, ser, http.StatusBadRequest)
+	}
+
+	// Заглядываем в будущее запроса, чтобы понять есть ли у нас еще строки в БД
+	future := 5
+	songs, err := sh.storage.SelectFuturePaginationLibSong(offset, limit, future, filter, order)
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusBadRequest)
 	}
 
-	b, err := json.Marshal(&s)
+	resp := dto.RespPaginationLib{Next: false}
+
+	part := len(songs) - limit
+	if part > 0 {
+		resp.Next = true
+	}
+
+	resp.Songs = songs
+
+	b, err := json.Marshal(&resp)
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
@@ -75,7 +116,7 @@ func Lib(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func Create(w http.ResponseWriter, r *http.Request) {
+func (sh *SongHandler) Create(w http.ResponseWriter, r *http.Request) {
 	m := r.Method
 	if m != http.MethodPost {
 		ser := `{"error": "request must be POST"}`
@@ -96,7 +137,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func Change(w http.ResponseWriter, r *http.Request) {
+func (sh *SongHandler) Change(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		ser := `{"error": "request must be PUT"}`
 		http.Error(w, ser, http.StatusBadRequest)
@@ -126,7 +167,7 @@ func Change(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func Delete(w http.ResponseWriter, r *http.Request) {
+func (sh *SongHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		ser := `{"error": "request must be DELETE"}`
 		http.Error(w, ser, http.StatusBadRequest)

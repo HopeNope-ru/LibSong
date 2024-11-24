@@ -1,6 +1,6 @@
 package dto
 
-type ReqSong struct {
+type Song struct {
 	Group       string `json:"group,omitempty" mdb:"group"`
 	Song        string `json:"song,omitempty" mdb:"song"`
 	ReleaseDate string `json:"releaseDate,omitempty" mdb:"release_date"`
