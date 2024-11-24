@@ -20,6 +20,10 @@ func ToVerseList(text string) []string {
 
 func ModelSong2Song(mdl *model.SongModel, song *dto.Song) {
 	song.Group = mdl.Group
+	song.Song = mdl.Song
+	song.ReleaseDate = mdl.ReleaseData.Time
+	song.Text = mdl.Link.String
+	song.Link = mdl.Link.String
 }
 
 func UnmarshalSong(r *http.Request) (*dto.Song, error) {

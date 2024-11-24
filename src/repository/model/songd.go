@@ -89,7 +89,7 @@ func (d *Date) timeToDate(t *time.Time) (string, error) {
 type SongModel struct {
 	Group       string
 	Song        string
-	ReleaseData Date
+	ReleaseDate Date
 	Lyric       sql.NullString
 	Link        sql.NullString
 }

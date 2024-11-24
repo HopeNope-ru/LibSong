@@ -79,22 +79,23 @@ func (s *SongRepository) CreateSong(group, song string) error {
 	return nil
 }
 
-func (s *SongRepository) SelectFuturePaginationLibSong(offset, limit, future int, filter, order_by string) ([]dto.Song, error) {
+func (s *SongRepository) SelectFuturePaginationLibSong(offset, limit, future int, filter, order_by string) ([]model.SongModel, error) {
 	q := fmt.Sprintf("select song, \"group\", release_date, lyrics, link from library.song order by %s %s limit $2 offset $1", filter, order_by)
 	row, err := s.db.Query(s.ctx, q, offset, limit+future)
 	if err != nil {
 		panic(err)
 	}
 
-	songs := make([]dto.Song, 0, limit)
+	songs := make([]model.SongModel, 0, limit)
 	for row.Next() {
-		var s dto.Song
-		err := row.Scan(&s.Song, &s.Group, &s.ReleaseDate, &s.lyric)
+
+		var ms model.SongModel
+		err := row.Scan(&ms.Song, &ms.Group, &ms.ReleaseDate, &ms.Lyric, &ms.Link)
 		if err != nil {
 			panic(err)
 		}
 
-		songs = append(songs, s)
+		songs = append(songs, ms)
 	}
 
 	return songs, nil
