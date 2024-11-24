@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/lyric/songs/hw/src/handlers/dto"
 	"github.com/lyric/songs/hw/src/repository"
 	"github.com/lyric/songs/hw/src/utils"
@@ -22,15 +22,18 @@ func NewSongHandler(storage *repository.SongRepository) *SongHandler {
 }
 
 func (sh *SongHandler) Info(w http.ResponseWriter, r *http.Request) {
-	v := mux.Vars(r)
-	group, ok := v["group"]
-	if !ok {
+	v := r.URL.Query()
+
+	group := v.Get("group")
+	if !v.Has("group") {
 		http.Error(w, `{"error": "not found group"}`, http.StatusBadRequest)
+		return
 	}
 
-	song, ok := v["song"]
-	if !ok {
-		http.Error(w, `{"error": "not found group"}`, http.StatusBadRequest)
+	song := v.Get("song")
+	if !v.Has("song") {
+		http.Error(w, "not found song", http.StatusBadRequest)
+		return
 	}
 
 	s, err := sh.storage.SelectSong(group, song)
@@ -43,21 +46,23 @@ func (sh *SongHandler) Info(w http.ResponseWriter, r *http.Request) {
 	b, err := json.Marshal(&s)
 	if err != nil {
 		http.Error(w, `{"error": "couldn't marshal info"}`, http.StatusInternalServerError)
+		return
 	}
 
 	w.Write(b)
 }
 
 func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
-	v := mux.Vars(r)
 
-	soffset, ok := v["offset"]
-	if !ok {
+	values := r.URL.Query()
+
+	soffset := values.Get("offset")
+	if !values.Has("offset") {
 		soffset = "0"
 	}
 
-	slimit, ok := v["limit"]
-	if !ok {
+	slimit := values.Get("limit")
+	if !values.Has("limit") {
 		slimit = "5"
 	}
 
@@ -73,13 +78,13 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filter, ok := v["filter"]
-	if !ok {
+	filter := values.Get("filter")
+	if !values.Has("filter") {
 		filter = "song"
 	}
 
-	order, ok := v["order"]
-	if !ok {
+	order := values.Get("order")
+	if !values.Has("order") {
 		order = "asc"
 	}
 
@@ -137,13 +142,8 @@ func (sh *SongHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(req.Group) == 0 {
-		http.Error(w, "need group", http.StatusBadRequest)
-		return
-	}
-
-	if len(req.Song) == 0 {
-		http.Error(w, "need song", http.StatusBadRequest)
+	if ok, err := ValidReq(req); !ok {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -170,13 +170,8 @@ func (sh *SongHandler) Change(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(req.Group) == 0 {
-		http.Error(w, "need group", http.StatusBadRequest)
-		return
-	}
-
-	if len(req.Song) == 0 {
-		http.Error(w, "need song", http.StatusBadRequest)
+	if ok, err := ValidReq(req); !ok {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -207,7 +202,10 @@ func (sh *SongHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ValidReq(w, req)
+	if ok, err := ValidReq(req); !ok {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	rowAffected, err := sh.storage.DeleteSong(req.Group, req.Song)
 	if err != nil {
@@ -224,12 +222,14 @@ func (sh *SongHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func ValidReq(w http.ResponseWriter, req *dto.Song) {
+func ValidReq(req *dto.Song) (bool, error) {
 	if len(req.Group) == 0 {
-		http.Error(w, "need group", http.StatusBadRequest)
+		return false, errors.New("need group")
 	}
 
 	if len(req.Song) == 0 {
-		http.Error(w, "need song", http.StatusBadRequest)
+		return false, errors.New("need song")
 	}
+
+	return true, nil
 }

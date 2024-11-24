@@ -81,7 +81,7 @@ func (s *SongRepository) CreateSong(group, song string) error {
 }
 
 func (s *SongRepository) SelectFuturePaginationLibSong(offset, limit, future int, filter, order_by string) ([]dto.Song, error) {
-	q := fmt.Sprintf("select song, \"group\" from library.song limit $2 offset $1 order by %s %s", filter, order_by)
+	q := fmt.Sprintf("select song, \"group\" from library.song order by %s %s limit $2 offset $1", filter, order_by)
 	row, err := s.db.Query(s.ctx, q, offset, limit+future)
 	if err != nil {
 		panic(err)
