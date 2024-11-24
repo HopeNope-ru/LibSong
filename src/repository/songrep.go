@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lyric/songs/hw/src/handlers/dto"
 	"github.com/lyric/songs/hw/src/repository/model"
+	"github.com/lyric/songs/hw/src/utils"
 )
 
 type SongRepository struct {
@@ -50,12 +52,18 @@ func (s *SongRepository) DeleteSong(group, song string) (int64, error) {
 	return ra, nil
 }
 
-// func (s *SongRepository) ChangeSong(song dto.ReqSong) (int64, error) {
+func (s *SongRepository) ChangeSong(song dto.ReqSong) (int64, error) {
 
-// 	q := utils.GenerateUpdateQuery(s.table, song)
+	q, args := utils.GenerateUpdateQuery(s.table, song)
 
-// 	return nil
-// }
+	excd, err := s.db.Exec(s.ctx, q, args)
+	if err != nil {
+		return 0, err
+	}
+	excd.RowsAffected()
+
+	return nil
+}
 
 // func (s *SongRepository) execUpdate(query string, song dto.ReqSong) {
 
