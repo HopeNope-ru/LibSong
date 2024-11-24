@@ -10,14 +10,14 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/lyric/songs/hw/src/repository/model"
+	"github.com/lyric/songs/hw/src/handlers/dto"
 )
 
 func ToVerseList(text string) []string {
 	return strings.Split(text, "\\n\\n")
 }
 
-func UnmarshalSong(r *http.Request) (*model.SongDetail, error) {
+func UnmarshalSong(r *http.Request) (*dto.Song, error) {
 	defer r.Body.Close()
 
 	b, err := io.ReadAll(r.Body)
@@ -26,7 +26,7 @@ func UnmarshalSong(r *http.Request) (*model.SongDetail, error) {
 		return nil, errors.New(ser)
 	}
 
-	var song model.SongDetail
+	var song dto.Song
 	if err = json.Unmarshal(b, &song); err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		return nil, errors.New(ser)

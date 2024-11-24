@@ -24,7 +24,7 @@ type SongHandler struct {
 	storage *repository.SongRepository
 }
 
-func Info(w http.ResponseWriter, r *http.Request) {
+func (sh *SongHandler) Info(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	group, ok := v["group"]
 	if !ok {
@@ -36,7 +36,7 @@ func Info(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error": "not found group"}`, http.StatusBadRequest)
 	}
 
-	s, err := storage.GetSong(group, song)
+	s, err := sh.storage.SelectSong(group, song)
 	// Реализовать логирование ошибки
 
 	b, err := json.Marshal(&s)
@@ -129,7 +129,15 @@ func (sh *SongHandler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, ser, http.StatusBadRequest)
 	}
 
-	if err = storage.CreateSong(req); err != nil {
+	if len(req.Group) == 0 {
+		http.Error(w, "need group", http.StatusBadRequest)
+	}
+
+	if len(req.Song) == 0 {
+		http.Error(w, "need song", http.StatusBadRequest)
+	}
+
+	if err = sh.storage.CreateSong(req.Group, req.Song); err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 	}

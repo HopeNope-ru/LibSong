@@ -71,18 +71,7 @@ func (d *Date) timeToDate(t *time.Time) (string, error) {
 // }
 
 type SongDetail struct {
-	Song        string         `json:"song"`
-	Group       string         `json:"group"`
 	ReleaseData Date           `json:"releaseDate,omitempty"`
 	Lyric       sql.NullString `json:"text,omitempty"`
 	Link        sql.NullString `json:"link,omitempty"`
-	Format      sql.NullString `json:"format,omitempty"`
-}
-
-type SongModel struct {
-	Song        string         `mdb:"song"`
-	Group       string         `mdb:"group"`
-	ReleaseData Date           `mdb:"releaseDate,omitempty"`
-	Lyric       sql.NullString `mdb:"text,omitempty"`
-	Link        sql.NullString `mdb:"link,omitempty"`
 }
