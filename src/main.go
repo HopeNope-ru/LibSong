@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lyric/songs/hw/src/repository"
 	"github.com/lyric/songs/hw/src/repository/model"
 )
 
@@ -35,7 +36,16 @@ func main() {
 		m = append(m, s)
 	}
 
-	for _, val := range m {
-		fmt.Println(val)
+	s := repository.NewSongRepository(context.Background(), dbpool)
+	res, err := s.SelectSong("Wham!", "Last Christmas")
+	if err != nil {
+		panic(err)
 	}
+	fmt.Println(res)
+
+	ra, err := s.DeleteSong("Wham!1", "Last Christmas")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("rows affected %v\n", ra)
 }
