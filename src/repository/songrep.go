@@ -52,7 +52,7 @@ func (s *SongRepository) DeleteSong(group, song string) (int64, error) {
 	return ra, nil
 }
 
-func (s *SongRepository) ChangeSong(group, song string, req dto.Song) (int64, error) {
+func (s *SongRepository) ChangeSong(group, song string, req *dto.Song) (int64, error) {
 
 	q, args := utils.GenerateUpdateQuery(s.table, req)
 

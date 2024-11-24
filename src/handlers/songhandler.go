@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lyric/songs/hw/src/handlers/dto"
 	"github.com/lyric/songs/hw/src/repository"
-	"github.com/lyric/songs/hw/src/repository/model"
 	"github.com/lyric/songs/hw/src/utils"
 )
 
@@ -151,25 +149,28 @@ func (sh *SongHandler) Change(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, ser, http.StatusBadRequest)
 	}
 
-	// !!!!!!!! Сюда добавить util.UnmarshalSong()
-	defer r.Body.Close()
-
-	b, err := io.ReadAll(r.Body)
+	req, err := utils.UnmarshalSong(r)
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 	}
 
-	var song model.SongDetail
-	if err = json.Unmarshal(b, &song); err != nil {
+	if len(req.Group) == 0 {
+		http.Error(w, "need group", http.StatusBadRequest)
+	}
+
+	if len(req.Song) == 0 {
+		http.Error(w, "need song", http.StatusBadRequest)
+	}
+
+	rowAffected, err := sh.storage.ChangeSong(req.Group, req.Song, req)
+	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 	}
-	// !!!!!!!!!!!!!!!!!!!!!
 
-	if err := storage.ChangeSong(); err != nil {
-		ser := fmt.Sprintf(`{"error": "%s"}`, err)
-		http.Error(w, ser, http.StatusInternalServerError)
+	if rowAffected == 0 {
+		w.WriteHeader(http.StatusNotModified)
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -180,26 +181,34 @@ func (sh *SongHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		ser := `{"error": "request must be DELETE"}`
 		http.Error(w, ser, http.StatusBadRequest)
 	}
-	// !!!!!!!! Сюда добавить util.UnmarshalSong()
-	defer r.Body.Close()
 
-	b, err := io.ReadAll(r.Body)
+	req, err := utils.UnmarshalSong(r)
 	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 	}
 
-	var song model.SongDetail
-	if err = json.Unmarshal(b, &song); err != nil {
+	ValidReq(w, req)
+
+	rowAffected, err := sh.storage.DeleteSong(req.Group, req.Song)
+	if err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 	}
-	// !!!!!!!!!!!!!!!!!!!!!
 
-	if err = storage.DeleteSong(); err != nil {
-		ser := fmt.Sprintf(`{"error": "%s"}`, err)
-		http.Error(w, ser, http.StatusInternalServerError)
+	if rowAffected == 0 {
+		w.WriteHeader(http.StatusNotModified)
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func ValidReq(w http.ResponseWriter, req *dto.Song) {
+	if len(req.Group) == 0 {
+		http.Error(w, "need group", http.StatusBadRequest)
+	}
+
+	if len(req.Song) == 0 {
+		http.Error(w, "need song", http.StatusBadRequest)
+	}
 }
