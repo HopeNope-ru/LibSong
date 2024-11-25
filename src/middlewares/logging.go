@@ -9,26 +9,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type HookMaster struct {
-	Body
-	Method
-	Path
-	http.Header
-	zerolog.Hook
-}
-
-func (h HookMaster) Run(e *zerolog.Event, level zerolog.Level, message string) {
-	switch level {
-	case zerolog.DebugLevel:
-
-	}
-}
-
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		compatibleLog := new(zerolog.Event)
 		if l := log.Debug(); l.Enabled() {
-
 			dict := zerolog.Dict()
 			for key, val := range r.Header {
 				dict = dict.Strs(key, val)
@@ -44,18 +27,23 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 				http.Error(w, "err", http.StatusInternalServerError)
 			}
 
-			l.Dict("headers", dict).
-				Bytes("body", buf.Bytes())
+			// Надо изучить либу zerolog, чтобы не копипастить
+			// path и method. Возможное решение через context.
+			l.Str("method", r.Method).
+				Str("path", r.URL.Path).
+				Dict("headers", dict).
+				Bytes("body", buf.Bytes()).
+				Interface("query", r.URL.Query()).
+				Msg("logging")
+
 			r.Body = io.NopCloser(buf)
+		} else {
+			log.Info().
+				Str("method", r.Method).
+				Str("path", r.URL.Path).
+				Msg("logging")
 		}
 
-		log.Warn().Msg("")
-
-		l.Str("path", r.URL.Path).
-			Str("method", r.Method)
-		// Релизация логгирования с уровнем DEBUG
-		// v := mux.Vars(r)
-		// Реализаци логгирования с уровнем INFO
 		next.ServeHTTP(w, r)
 	})
 }

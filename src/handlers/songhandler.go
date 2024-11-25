@@ -11,6 +11,7 @@ import (
 	"github.com/lyric/songs/hw/src/handlers/dto"
 	"github.com/lyric/songs/hw/src/repository"
 	"github.com/lyric/songs/hw/src/utils"
+	"github.com/rs/zerolog/log"
 )
 
 type SongHandler struct {
@@ -27,26 +28,27 @@ func (sh *SongHandler) Info(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 
 	group := v.Get("group")
-	if !v.Has("group") {
-		http.Error(w, `{"error": "not found group"}`, http.StatusBadRequest)
+	if err := utils.ValidQuery("group", &v); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	song := v.Get("song")
-	if !v.Has("song") {
-		http.Error(w, "not found song", http.StatusBadRequest)
+	if err := utils.ValidQuery("song", &v); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	s, err := sh.storage.SelectSong(group, song)
 	if err != nil {
-		ser := fmt.Sprintf(`{"error": "%s"}`, err)
-		http.Error(w, ser, http.StatusInternalServerError)
+		log.Err(err).Send()
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	// Реализовать логирование ошибки
 
 	b, err := json.Marshal(&s)
 	if err != nil {
+		log.Err(err).Send()
 		http.Error(w, `{"error": "couldn't marshal info"}`, http.StatusInternalServerError)
 		return
 	}

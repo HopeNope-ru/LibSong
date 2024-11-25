@@ -7,12 +7,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strings"
 
 	"github.com/lyric/songs/hw/src/handlers/dto"
 	"github.com/lyric/songs/hw/src/repository/model"
+	"github.com/rs/zerolog/log"
 )
+
+type ErrorHandler struct {
+	Err string `json:"error"`
+}
+
+func (eh *ErrorHandler) Error() string {
+	return eh.Err
+}
 
 func ToVerseList(text string) []string {
 	return strings.Split(text, "\\n\\n")
@@ -52,6 +62,26 @@ func UnmarshalSong(r *http.Request) (*dto.Song, error) {
 	}
 
 	return &song, nil
+}
+
+func ValidQuery(val string, queries *url.Values) error {
+	q := queries.Get(val)
+
+	if !queries.Has(val) {
+		s := fmt.Sprintf("query %s not be empty", val)
+		log.Error().Str(val, q).Msg(s)
+
+		eh := ErrorHandler{Err: s}
+
+		b, err := json.Marshal(eh)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(b))
+	}
+
+	return nil
 }
 
 func GenerateUpdateQuery(table string, object any) (string, []any) {
