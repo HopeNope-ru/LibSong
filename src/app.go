@@ -34,6 +34,8 @@ func GetApp(args ...string) {
 		Methods(http.MethodGet)
 	r.HandleFunc("/delete", songhandlers.Delete).
 		Methods(http.MethodDelete)
+	r.HandleFunc("/song", songhandlers.Change).
+		Methods(http.MethodPut)
 
 	log.Println("Listen and serve port 8080")
 	log.Fatalln(http.ListenAndServe(":8080", r))

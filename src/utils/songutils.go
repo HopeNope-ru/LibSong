@@ -61,10 +61,11 @@ func GenerateUpdateQuery(table string, object any) (string, []any) {
 	b.WriteString(table)
 	b.WriteString(" SET ")
 
-	rs := reflect.ValueOf(object)
-	ts := reflect.TypeOf(object)
-	k := rs.Kind()
-	fmt.Println(k)
+	// Необходимо вызвать Elem, т.к передаем ptr сюда.
+	// Лучше всего делать через switch, если нужно больше возможностей,
+	// но будем использовать такой костыль.
+	rs := reflect.ValueOf(object).Elem()
+	ts := reflect.TypeOf(object).Elem()
 	// Создаем и получаем массив с названием полей структуры
 	num := rs.NumField()
 	keyarr := make([]string, 0, num)
