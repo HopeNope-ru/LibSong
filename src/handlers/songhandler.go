@@ -100,6 +100,7 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 		order = lo
 	default:
 		ser := `{"error": "order is not compatible"}`
+		log.Error().Str("error", ser).Send()
 		http.Error(w, ser, http.StatusBadRequest)
 		return
 	}
@@ -108,6 +109,7 @@ func (sh *SongHandler) Lib(w http.ResponseWriter, r *http.Request) {
 	future := 5
 	modelsongs, err := sh.storage.SelectFuturePaginationLibSong(offset, limit, future, filter, order)
 	if err != nil {
+		log.Error().Stack().Err(err).Send()
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusBadRequest)
 		return
@@ -152,18 +154,21 @@ func (sh *SongHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	req, err := utils.UnmarshalSong(r)
 	if err != nil {
-		ser := `{"error": "request must be POST"}`
+		log.Error().Stack().Err(err).Send()
+		ser := `{"error": "couldn't unmarshal"}`
 		http.Error(w, ser, http.StatusBadRequest)
 		return
 	}
 
 	if ok, err := ValidReq(req); !ok {
+		log.Error().Stack().Err(err).Send()
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if err = sh.storage.CreateSong(req.Group, req.Song); err != nil {
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
+		log.Error().Stack().Err(err).Send()
 		http.Error(w, ser, http.StatusInternalServerError)
 		return
 	}
@@ -182,6 +187,7 @@ func (sh *SongHandler) Change(w http.ResponseWriter, r *http.Request) {
 
 	req, err := utils.UnmarshalSong(r)
 	if err != nil {
+		log.Error().Stack().Err(err).Send()
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 		return
@@ -194,6 +200,7 @@ func (sh *SongHandler) Change(w http.ResponseWriter, r *http.Request) {
 
 	rowAffected, err := sh.storage.ChangeSong(req.Group, req.Song, req)
 	if err != nil {
+		log.Error().Stack().Err(err).Send()
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 		return
@@ -217,6 +224,7 @@ func (sh *SongHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	req, err := utils.UnmarshalSong(r)
 	if err != nil {
+		log.Error().Stack().Err(err).Send()
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -228,6 +236,7 @@ func (sh *SongHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	rowAffected, err := sh.storage.DeleteSong(req.Group, req.Song)
 	if err != nil {
+		log.Error().Stack().Err(err).Send()
 		ser := fmt.Sprintf(`{"error": "%s"}`, err)
 		http.Error(w, ser, http.StatusInternalServerError)
 		return

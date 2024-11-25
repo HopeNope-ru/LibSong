@@ -12,11 +12,13 @@ import (
 	"github.com/lyric/songs/hw/src/middlewares"
 	"github.com/lyric/songs/hw/src/repository"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/pkgerrors"
 )
 
 func GetApp(args ...string) {
 	conf := configs.New()
 	zerolog.SetGlobalLevel(conf.Levellog)
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
 	dbpool, err := pgxpool.New(context.Background(), conf.Dsn)
 	if err != nil {
