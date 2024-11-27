@@ -1,0 +1,313 @@
+consumes:
+    - application/json
+definitions:
+    Date:
+        properties:
+            Time:
+                type: string
+            Valid:
+                type: boolean
+        type: object
+        x-go-package: github.com/lyric/songs/hw/src/repository/model
+    error:
+        properties:
+            code:
+                format: int64
+                type: integer
+                x-go-name: Code
+            error:
+                type: string
+                x-go-name: Err
+            message:
+                type: string
+                x-go-name: Message
+        type: object
+        x-go-name: ResponseError
+        x-go-package: github.com/lyric/songs/hw/src/dto
+    paginationSong:
+        properties:
+            group:
+                description: Группа исполнителей
+                type: string
+                x-go-name: Group
+            link:
+                description: Источник песни
+                type: string
+                x-go-name: Link
+            releaseDate:
+                description: Дата выхода песни
+                type: string
+                x-go-name: ReleaseDate
+            song:
+                description: Название песни исполнителей
+                type: string
+                x-go-name: Song
+            text:
+                description: Пагинация ложится на фронту, поскольку объем текста песен не большой и можно хранить у клиента
+                items:
+                    type: string
+                type: array
+                x-go-name: Text
+        type: object
+        x-go-name: PaginationSong
+        x-go-package: github.com/lyric/songs/hw/src/dto
+    song:
+        properties:
+            group:
+                description: Группа исполнителей
+                type: string
+                x-go-name: Group
+            link:
+                description: Источник песни
+                type: string
+                x-go-name: Link
+            releaseDate:
+                description: Дата выхода песни
+                type: string
+                x-go-name: ReleaseDate
+            song:
+                description: Название песни исполнителей
+                type: string
+                x-go-name: Song
+            text:
+                description: Первый куплет песни
+                type: string
+                x-go-name: Text
+        type: object
+        x-go-name: Song
+        x-go-package: github.com/lyric/songs/hw/src/dto
+    songDetail:
+        description: SongDetail
+        properties:
+            link:
+                type: string
+                x-go-name: Link
+            release_date:
+                format: date
+                type: string
+                x-go-name: ReleaseDate
+            text:
+                type: string
+                x-go-name: Lyric
+        type: object
+        x-go-name: SongDetail
+        x-go-package: github.com/lyric/songs/hw/src/dto
+host: localhost
+info:
+    contact:
+        email: helpvaried@gmail.com
+        name: Kirill Gasanov
+    title: Music API.
+    version: 0.0.1
+paths:
+    /change:
+        put:
+            operationId: changeSong
+            parameters:
+                - in: query
+                  name: group
+                  required: true
+                  type: string
+                  x-go-name: Group
+                - in: body
+                  name: song
+                  required: true
+                  schema:
+                    $ref: '#/definitions/song'
+                  x-go-name: Body
+            responses:
+                "201":
+                    description: ""
+                "304":
+                    description: ""
+                "400":
+                    $ref: '#/responses/respError'
+                "500":
+                    $ref: '#/responses/respError'
+            summary: Изменение песни
+            tags:
+                - song
+    /create:
+        post:
+            operationId: createSong
+            parameters:
+                - in: query
+                  name: song
+                  required: true
+                  type: string
+                  x-go-name: Song
+                - in: query
+                  name: group
+                  required: true
+                  type: string
+                  x-go-name: Group
+            responses:
+                "201":
+                    description: ""
+                "400":
+                    $ref: '#/responses/respError'
+                "500":
+                    $ref: '#/responses/respError'
+            summary: Добавление песни
+            tags:
+                - song
+    /delete:
+        delete:
+            operationId: deleteSong
+            parameters:
+                - in: query
+                  name: song
+                  required: true
+                  type: string
+                  x-go-name: Song
+                - in: query
+                  name: group
+                  required: true
+                  type: string
+                  x-go-name: Group
+            responses:
+                "200":
+                    description: ""
+                "304":
+                    description: ""
+                "500":
+                    $ref: '#/responses/respError'
+            summary: Удаление песни
+            tags:
+                - song
+    /info:
+        get:
+            operationId: info
+            parameters:
+                - in: query
+                  name: song
+                  required: true
+                  type: string
+                  x-go-name: Song
+                - in: query
+                  name: group
+                  required: true
+                  type: string
+                  x-go-name: Group
+            responses:
+                "200":
+                    $ref: '#/responses/respPaginationSong'
+                "400":
+                    $ref: '#/responses/respError'
+                "500":
+                    $ref: '#/responses/respError'
+            summary: Получение песни с пагинацией
+            tags:
+                - song
+    /library/songs:
+        get:
+            operationId: librarySong
+            parameters:
+                - default: 0
+                  description: in query
+                  format: int64
+                  in: query
+                  name: offset
+                  type: integer
+                  x-go-name: Offset
+                - default: 5
+                  format: int64
+                  in: query
+                  name: limit
+                  type: integer
+                  x-go-name: Limit
+                - default: asc
+                  description: |-
+                    OrderBy
+                    asc ASCENDING
+                    desc DESCENDING
+                  enum:
+                    - asc
+                    - desc
+                  in: query
+                  name: order_by
+                  type: string
+                  x-go-enum-desc: |-
+                    asc ASCENDING
+                    desc DESCENDING
+                  x-go-name: OrderBy
+                - default: song
+                  description: |-
+                    Filter
+                    group GROUP
+                    song SONG
+                    release_date RELEASE_DATE
+                    text LYRIC
+                    link LINK
+                  enum:
+                    - group
+                    - song
+                    - release_date
+                    - text
+                    - link
+                  in: query
+                  name: filter
+                  type: string
+                  x-go-enum-desc: |-
+                    group GROUP
+                    song SONG
+                    release_date RELEASE_DATE
+                    text LYRIC
+                    link LINK
+                  x-go-name: Filter
+            responses:
+                "200":
+                    $ref: '#/responses/respPaginationLib'
+                "400":
+                    $ref: '#/responses/respError'
+                "500":
+                    $ref: '#/responses/respError'
+            summary: Получение песен с пагинацией
+            tags:
+                - song
+    /song:
+        get:
+            operationId: info
+            parameters:
+                - in: query
+                  name: song
+                  required: true
+                  type: string
+                  x-go-name: Song
+                - in: query
+                  name: group
+                  required: true
+                  type: string
+                  x-go-name: Group
+            responses:
+                "200":
+                    $ref: '#/responses/respPaginationSong'
+                "400":
+                    $ref: '#/responses/respError'
+                "500":
+                    $ref: '#/responses/respError'
+            summary: Получение песни с пагинацией
+            tags:
+                - song
+produces:
+    - application/json
+responses:
+    respError:
+        description: Модель ошибки
+        schema:
+            $ref: '#/definitions/error'
+    respPaginationSong:
+        description: ""
+        headers:
+            song: {}
+        schema:
+            $ref: '#/definitions/paginationSong'
+    respSongDetail:
+        description: ""
+        headers:
+            song: {}
+        schema:
+            $ref: '#/definitions/songDetail'
+schemes:
+    - http
+swagger: "2.0"
