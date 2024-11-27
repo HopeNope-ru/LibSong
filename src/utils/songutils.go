@@ -11,7 +11,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/lyric/songs/hw/src/handlers/dto"
+	"github.com/lyric/songs/hw/src/dto"
 	"github.com/lyric/songs/hw/src/repository/model"
 	"github.com/rs/zerolog/log"
 )
@@ -46,6 +46,12 @@ func ModelSong2SongToVerseList(mdl *model.SongModel, song *dto.Song) {
 	song.Text = verses[0]
 }
 
+func JSONError(w http.ResponseWriter, err interface{}, code int) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(err)
+}
+
 func UnmarshalSong(r *http.Request) (*dto.Song, error) {
 	defer r.Body.Close()
 
@@ -71,14 +77,7 @@ func ValidQuery(val string, queries *url.Values) error {
 		s := fmt.Sprintf("query %s not be empty", val)
 		log.Error().Str(val, q).Msg(s)
 
-		eh := ErrorHandler{Err: s}
-
-		b, err := json.Marshal(eh)
-		if err != nil {
-			return err
-		}
-
-		return errors.New(string(b))
+		return errors.New(s)
 	}
 
 	return nil

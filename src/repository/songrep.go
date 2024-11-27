@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/lyric/songs/hw/src/handlers/dto"
+	"github.com/lyric/songs/hw/src/dto"
 	"github.com/lyric/songs/hw/src/repository/model"
 	"github.com/lyric/songs/hw/src/utils"
 )
@@ -20,7 +20,7 @@ func NewSongRepository(ctx context.Context, db *pgxpool.Pool) *SongRepository {
 	return &SongRepository{db: db, ctx: ctx, table: "library.song"}
 }
 
-func (s *SongRepository) SelectSong(group, song string) (*model.SongModel, error) {
+func (s *SongRepository) SelectSongDetail(group, song string) (*dto.SongDetail, error) {
 
 	var sng model.SongModel
 	q := fmt.Sprintf(`
@@ -38,7 +38,38 @@ func (s *SongRepository) SelectSong(group, song string) (*model.SongModel, error
 		return nil, err
 	}
 
-	return &sng, nil
+	return &dto.SongDetail{
+		Lyric:       sng.Lyric.String,
+		Link:        sng.Link.String,
+		ReleaseDate: sng.ReleaseDate,
+	}, nil
+}
+
+func (s *SongRepository) SelectPaginationSong(group, song string) (*dto.PaginationSong, error) {
+
+	var sng model.SongModel
+	q := fmt.Sprintf(`
+		select release_date, lyrics, link, "group", song
+		from %s 
+		where 1=1
+			and "group" = $1 
+			and song = $2`, s.table,
+	)
+
+	err := s.db.QueryRow(s.ctx, q, group, song).
+		Scan(&sng.ReleaseDate, &sng.Lyric, &sng.Link, &sng.Group, &sng.Song)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.PaginationSong{
+		Text:        utils.ToVerseList(sng.Lyric.String),
+		Link:        sng.Link.String,
+		ReleaseDate: sng.ReleaseDate.Time,
+		Group:       sng.Group,
+		Song:        sng.Song,
+	}, nil
 }
 
 func (s *SongRepository) DeleteSong(group, song string) (int64, error) {
@@ -83,7 +114,7 @@ func (s *SongRepository) SelectFuturePaginationLibSong(offset, limit, future int
 	q := fmt.Sprintf("select song, \"group\", release_date, lyrics, link from library.song order by %s %s limit $2 offset $1", filter, order_by)
 	row, err := s.db.Query(s.ctx, q, offset, limit+future)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	songs := make([]model.SongModel, 0, limit)

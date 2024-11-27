@@ -39,9 +39,11 @@ func GetApp(args ...string) {
 		Methods(http.MethodGet)
 	r.HandleFunc("/library/songs", songhandlers.Lib).
 		Methods(http.MethodGet)
+	r.HandleFunc("/create", songhandlers.Lib).
+		Methods(http.MethodGet)
 	r.HandleFunc("/delete", songhandlers.Delete).
 		Methods(http.MethodDelete)
-	r.HandleFunc("/song", songhandlers.Change).
+	r.HandleFunc("/change", songhandlers.Change).
 		Methods(http.MethodPut)
 	r.Use(middlewares.LoggingMiddleware)
 
